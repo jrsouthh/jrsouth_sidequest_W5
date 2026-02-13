@@ -18,6 +18,11 @@ class Camera2D {
     this.y = constrain(this.y, 0, maxY);
   }
 
+  autoScrollDown(speed, lerpAmt = 1.0) {
+    const desired = this.y + speed;
+    this.y = lerp(this.y, desired, lerpAmt);
+  }
+
   begin() {
     push();
     translate(-this.x, -this.y);
