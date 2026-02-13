@@ -278,9 +278,11 @@ function drawStartScreen() {
   text("Underwater Descent", width / 2, height / 2 - 70);
 
   textSize(18);
-  text("Avoid the bubbles", width / 2, height / 2 - 20);
-  text("Move: A/D or ←/→", width / 2, height / 2 + 10);
-  text("Press SPACE to start", width / 2, height / 2 + 55);
+
+  text("Avoid the bubbles", width / 2, height / 2 - 30);
+  text("Collect stars to regain air", width / 2, height / 2 - 5);
+  text("Move: A/D or ←/→", width / 2, height / 2 + 25);
+  text("Press SPACE to start", width / 2, height / 2 + 65);
 
   textAlign(LEFT, BASELINE);
 }
