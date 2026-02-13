@@ -26,8 +26,16 @@ let level;
 let player;
 let cam;
 
+let bubbles = [];
+let lives = 3;
+
+diverImg = loadImage("diver.jpg");
+
+let diverImg = null;
+
 function preload() {
-  allLevelsData = loadJSON("levels.json"); // levels.json beside index.html [web:122]
+  allLevelsData = loadJSON("levels.json");
+  // diverImg = loadImage("assets/diver.png"); // uncomment if you add one
 }
 
 function setup() {
@@ -46,8 +54,12 @@ function loadLevel(i) {
   player.spawnFromLevel(level);
 
   cam.x = player.x - width / 2;
-  cam.y = 0;
+  cam.y = max(0, player.y - height / 2);
   cam.clampToWorld(level.w, level.h);
+
+  lives = 3;
+  bubbles = [];
+  spawnBubbles(40); // calm density
 }
 
 function draw() {
