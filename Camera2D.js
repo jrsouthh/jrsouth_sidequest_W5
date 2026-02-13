@@ -11,16 +11,16 @@ class Camera2D {
     this.x = lerp(this.x, desired, lerpAmt);
   }
 
+  autoScrollDown(speed, lerpAmt = 1.0) {
+    const desired = this.y + speed;
+    this.y = lerp(this.y, desired, lerpAmt);
+  }
+
   clampToWorld(worldW, worldH) {
     const maxX = max(0, worldW - this.viewW);
     const maxY = max(0, worldH - this.viewH);
     this.x = constrain(this.x, 0, maxX);
     this.y = constrain(this.y, 0, maxY);
-  }
-
-  autoScrollDown(speed, lerpAmt = 1.0) {
-    const desired = this.y + speed;
-    this.y = lerp(this.y, desired, lerpAmt);
   }
 
   begin() {

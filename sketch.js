@@ -29,13 +29,13 @@ let cam;
 let bubbles = [];
 let lives = 3;
 
-diverImg = loadImage("diver.jpg");
-
-let diverImg = null;
+let diverImg = null; // declare ONCE
 
 function preload() {
   allLevelsData = loadJSON("levels.json");
-  // diverImg = loadImage("assets/diver.png"); // uncomment if you add one
+
+  // load diver image safely here
+  diverImg = loadImage("diver.jpg");
 }
 
 function setup() {
@@ -80,6 +80,16 @@ function makeBubbleInRange() {
 
 function draw() {
   // --- view state: calm downward auto-scroll ---
+
+  console.log(
+    "cam.y",
+    cam.y,
+    "level.scrollY",
+    level.scrollY,
+    "diverImg",
+    diverImg,
+  );
+
   cam.autoScrollDown(level.scrollY, 0.08);
   cam.clampToWorld(level.w, level.h);
 
