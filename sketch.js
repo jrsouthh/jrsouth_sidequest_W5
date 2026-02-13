@@ -35,7 +35,7 @@ function preload() {
   allLevelsData = loadJSON("levels.json");
 
   // load diver image safely here
-  diverImg = loadImage("diver.jpg");
+  diverImg = loadImage("diver.png");
 }
 
 function setup() {
