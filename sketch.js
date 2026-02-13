@@ -62,52 +62,130 @@ function loadLevel(i) {
   spawnBubbles(40); // calm density
 }
 
-function draw() {
-  // --- game state ---
-  player.update(level);
-
-  // Fall death → respawn
-  if (player.y - player.r > level.deathY) {
-    loadLevel(levelIndex);
-    return;
+function spawnBubbles(count) {
+  for (let i = 0; i < count; i++) {
+    bubbles.push(makeBubbleInRange());
   }
+}
 
-  // --- view state (data-driven smoothing) ---
-  cam.followSideScrollerX(player.x, level.camLerp);
-  cam.y = 0;
+function makeBubbleInRange() {
+  // Spawn bubbles somewhere within/around the current camera view,
+  // with a little buffer so they drift in naturally.
+  const x = random(40, level.w - 40);
+  const y = random(cam.y - 300, cam.y + height + 800);
+  const r = random(8, 18);
+  const vy = random(0.4, 1.2);
+  return new Bubble(x, y, r, vy);
+}
+
+function draw() {
+  // --- view state: calm downward auto-scroll ---
+  cam.autoScrollDown(level.scrollY, 0.08);
   cam.clampToWorld(level.w, level.h);
 
-  // --- draw ---
+  // --- diver behavior ---
+  // Keep diver centered vertically so the camera is the “experience”
+  // and the player only steers left/right.
+  player.y = cam.y + height / 2 + sin(frameCount * 0.02) * 6;
+  player.vy = 0; // prevent any leftover vertical velocity
+  player.update(level); // uses your existing left/right input system
+
+  // --- bubbles update + recycle ---
+  for (const b of bubbles) {
+    if (!b.alive) continue;
+    b.update();
+
+    // If bubble goes far above the camera, recycle it near the bottom
+    if (b.y < cam.y - 200) {
+      b.x = random(40, level.w - 40);
+      b.y = cam.y + height + random(400, 1200);
+      b.r = random(8, 18);
+      b.vy = random(0.4, 1.2);
+      b.alive = true;
+    }
+  }
+
+  // --- collision: diver touches bubble => lose life, bubble disappears ---
+  if (lives > 0) {
+    for (const b of bubbles) {
+      if (!b.alive) continue;
+
+      if (b.hitsCircle(player.x, player.y, player.r)) {
+        b.alive = false;
+        lives -= 1;
+        break; // only lose one life per frame
+      }
+    }
+  }
+
+  // --- draw world ---
   cam.begin();
-  level.drawWorld();
-  player.draw(level.theme.blob);
+  level.drawWorld(cam.y);
+
+  // draw bubbles
+  for (const b of bubbles) {
+    if (b.alive) b.draw();
+  }
+
+  // draw diver (image if available, otherwise simple shape)
+  drawDiver();
+
   cam.end();
 
-  // HUD
-  fill(0);
-  noStroke();
-  text(level.name + " (Example 5)", 10, 18);
-  text("A/D or ←/→ move • Space/W/↑ jump • Fall = respawn", 10, 36);
-  text("camLerp(JSON): " + level.camLerp + "  world.w: " + level.w, 10, 54);
-  text("cam: " + cam.x + ", " + cam.y, 10, 90);
-  const p0 = level.platforms[0];
-  text(`p0: x=${p0.x} y=${p0.y} w=${p0.w} h=${p0.h}`, 10, 108);
+  // --- HUD ---
+  drawHUD();
 
-  text(
-    "platforms: " +
-      level.platforms.length +
-      " start: " +
-      level.start.x +
-      "," +
-      level.start.y,
-    10,
-    72,
-  );
+  // --- game over pause ---
+  if (lives <= 0) {
+    fill(255);
+    noStroke();
+    textAlign(CENTER, CENTER);
+    textSize(28);
+    text("Out of air…", width / 2, height / 2 - 20);
+    textSize(14);
+    text("Press R to restart", width / 2, height / 2 + 18);
+    textAlign(LEFT, BASELINE);
+    noLoop();
+  }
+}
+function drawDiver() {
+  push();
+  translate(player.x, player.y);
+
+  if (diverImg) {
+    imageMode(CENTER);
+    image(diverImg, 0, 0, 60, 60);
+  } else {
+    // simple “diver” placeholder (calm + readable)
+    noStroke();
+    fill(230, 245, 255);
+    ellipse(0, 0, 44, 28); // body
+    ellipse(16, -6, 16, 16); // helmet
+    fill(180, 220, 255, 180);
+    ellipse(20, -6, 10, 10); // visor
+    fill(230, 245, 255);
+    triangle(-22, 0, -38, -8, -38, 8); // fins
+  }
+
+  pop();
+}
+
+function drawHUD() {
+  // HUD stays screen-space (not world-space)
+  push();
+  fill(255);
+  noStroke();
+  textSize(14);
+  textAlign(LEFT, TOP);
+  text(`Lives: ${lives}`, 12, 12);
+  text(`Depth: ${nf(cam.y, 1, 0)}`, 12, 32);
+  textAlign(LEFT, BASELINE);
+  pop();
 }
 
 function keyPressed() {
-  if (key === " " || key === "W" || key === "w" || keyCode === UP_ARROW) {
-    player.tryJump();
+  if (key === "r" || key === "R") {
+    loop();
+    loadLevel(levelIndex);
   }
-  if (key === "r" || key === "R") loadLevel(levelIndex);
 }
