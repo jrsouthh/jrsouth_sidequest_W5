@@ -113,6 +113,7 @@ function draw() {
   player.y = cam.y + height / 2 + sin(frameCount * 0.02) * 6;
   player.vy = 0; // prevent any leftover vertical velocity
   player.update(level); // uses your existing left/right input system
+  player.x = constrain(player.x, cam.x + player.r, cam.x + width - player.r);
 
   // --- bubbles update + recycle ---
   for (const b of bubbles) {
