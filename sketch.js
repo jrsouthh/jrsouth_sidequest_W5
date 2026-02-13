@@ -28,7 +28,7 @@ let cam;
 
 let bubbles = [];
 let lives = 3;
-
+let gameState = "start";
 let diverImg = null; // declare ONCE
 
 function preload() {
@@ -44,7 +44,8 @@ function setup() {
   textSize(14);
 
   cam = new Camera2D(width, height);
-  loadLevel(levelIndex);
+
+  gameState = "start";
 }
 
 function loadLevel(i) {
@@ -60,6 +61,8 @@ function loadLevel(i) {
   lives = 3;
   bubbles = [];
   spawnBubbles(45); // calm density
+
+  gameState = "play";
 }
 
 function spawnBubbles(count) {
@@ -80,6 +83,16 @@ function makeBubbleInRange() {
 
 function draw() {
   // --- view state: calm downward auto-scroll ---
+
+  if (gameState === "start") {
+    drawStartScreen();
+    return;
+  }
+
+  if (gameState === "gameover") {
+    drawGameOverScreen();
+    return;
+  }
 
   console.log(
     "cam.y",
@@ -144,19 +157,11 @@ function draw() {
   cam.end();
 
   // --- HUD ---
-  drawHUD();
-
   // --- game over pause ---
+  drawHUD();
   if (lives <= 0) {
-    fill(255);
-    noStroke();
-    textAlign(CENTER, CENTER);
-    textSize(28);
-    text("Out of air…", width / 2, height / 2 - 20);
-    textSize(14);
-    text("Press R to restart", width / 2, height / 2 + 18);
-    textAlign(LEFT, BASELINE);
-    noLoop();
+    gameState = "gameover";
+    return;
   }
 }
 function drawDiver() {
@@ -207,8 +212,55 @@ function drawHUD() {
 }
 
 function keyPressed() {
+  // START
+  if (gameState === "start" && key === " ") {
+    loop();
+    loadLevel(levelIndex);
+    return;
+  }
+
+  // RESTART
+  if (gameState === "gameover" && (key === "r" || key === "R")) {
+    loop();
+    loadLevel(levelIndex);
+    return;
+  }
+
+  // allow restart anytime if you want:
   if (key === "r" || key === "R") {
     loop();
     loadLevel(levelIndex);
   }
+}
+
+function drawStartScreen() {
+  background(10, 80, 150);
+
+  fill(255);
+  noStroke();
+  textAlign(CENTER, CENTER);
+
+  textSize(38);
+  text("Underwater Descent", width / 2, height / 2 - 70);
+
+  textSize(18);
+  text("Avoid the bubbles", width / 2, height / 2 - 20);
+  text("Move: A/D or ←/→", width / 2, height / 2 + 10);
+  text("Press SPACE to start", width / 2, height / 2 + 55);
+
+  textAlign(LEFT, BASELINE);
+}
+function drawGameOverScreen() {
+  background(0, 40, 90); // clears screen so it won’t stack
+
+  fill(255);
+  textAlign(CENTER, CENTER);
+
+  textSize(34);
+  text("Out of air…", width / 2, height / 2 - 30);
+
+  textSize(16);
+  text("Press R to restart", width / 2, height / 2 + 20);
+
+  textAlign(LEFT, BASELINE);
 }
