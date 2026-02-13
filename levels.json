@@ -10,7 +10,7 @@
       },
       "gravity": 0.0,
       "jumpV": 0.0,
-      "camera": { "lerp": 0.1, "scrollY": 0.35 },
+      "camera": { "lerp": 0.1, "scrollY": 0.85 },
       "world": { "w": 1600, "h": 6000, "deathY": 999999 },
       "start": { "x": 800, "y": 200, "r": 22 },
       "platforms": []

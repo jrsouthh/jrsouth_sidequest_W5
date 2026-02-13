@@ -59,7 +59,7 @@ function loadLevel(i) {
 
   lives = 3;
   bubbles = [];
-  spawnBubbles(40); // calm density
+  spawnBubbles(45); // calm density
 }
 
 function spawnBubbles(count) {
@@ -90,7 +90,8 @@ function draw() {
     diverImg,
   );
 
-  cam.autoScrollDown(level.scrollY, 0.08);
+  const dy = level.scrollY * (deltaTime / 16.666); // normalize to 60fps
+  cam.autoScrollDown(dy, 1.0); // 1.0 = no easing lag (more continuous)
   cam.clampToWorld(level.w, level.h);
 
   // --- diver behavior ---
@@ -164,7 +165,7 @@ function drawDiver() {
 
   if (diverImg) {
     imageMode(CENTER);
-    image(diverImg, 0, 0, 60, 60);
+    image(diverImg, 0, 0, 200, 200);
   } else {
     // simple “diver” placeholder (calm + readable)
     noStroke();
@@ -181,15 +182,27 @@ function drawDiver() {
 }
 
 function drawHUD() {
-  // HUD stays screen-space (not world-space)
   push();
-  fill(255);
+
+  // Background panel
+  const pad = 14;
+  const boxW = 200;
+  const boxH = 74;
+
   noStroke();
-  textSize(14);
+  fill(0, 120); // translucent dark
+  rect(pad - 6, pad - 6, boxW, boxH, 10);
+
+  // Text
+  fill(255);
   textAlign(LEFT, TOP);
-  text(`Lives: ${lives}`, 12, 12);
-  text(`Depth: ${nf(cam.y, 1, 0)}`, 12, 32);
-  textAlign(LEFT, BASELINE);
+
+  textSize(22);
+  text(`Lives: ${lives}`, pad, pad);
+
+  textSize(18);
+  text(`Depth: ${nf(cam.y, 1, 0)}`, pad, pad + 32);
+
   pop();
 }
 
