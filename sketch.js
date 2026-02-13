@@ -31,6 +31,9 @@ let lives = 3;
 let gameState = "start";
 let diverImg = null; // declare ONCE
 
+let stars = [];
+const MAX_LIVES = 3;
+
 function preload() {
   allLevelsData = loadJSON("levels.json");
 
@@ -58,9 +61,11 @@ function loadLevel(i) {
   cam.y = max(0, player.y - height / 2);
   cam.clampToWorld(level.w, level.h);
 
-  lives = 3;
+  lives = MAX_LIVES;
   bubbles = [];
-  spawnBubbles(45); // calm density
+  stars = [];
+
+  spawnBubbles(45);
 
   gameState = "play";
 }
@@ -143,6 +148,29 @@ function draw() {
     }
   }
 
+  for (const s of stars) {
+    if (!s.alive) continue;
+
+    if (s.hitsCircle(player.x, player.y, player.r)) {
+      s.alive = false;
+      lives = min(MAX_LIVES, lives + 1);
+      break; // only collect one per frame
+    }
+  }
+
+  maybeSpawnStar();
+
+  for (const s of stars) {
+    if (!s.alive) continue;
+
+    s.update();
+
+    // If star is far above the camera, retire it (keeps array clean-ish)
+    if (s.y < cam.y - 400) {
+      s.alive = false;
+    }
+  }
+
   // --- draw world ---
   cam.begin();
   level.drawWorld(cam.y);
@@ -150,6 +178,11 @@ function draw() {
   // draw bubbles
   for (const b of bubbles) {
     if (b.alive) b.draw();
+  }
+
+  // draw stars (behind diver, above background)
+  for (const s of stars) {
+    if (s.alive) s.draw();
   }
 
   // draw diver (image if available, otherwise simple shape)
@@ -264,4 +297,22 @@ function drawGameOverScreen() {
   text("Press R to restart", width / 2, height / 2 + 20);
 
   textAlign(LEFT, BASELINE);
+}
+
+function maybeSpawnStar() {
+  // Occasional, not too frequent
+  // Spawn only if we have room and a small random chance hits
+  const activeStars = stars.filter((s) => s.alive).length;
+  if (activeStars >= 6) return; // cap how many are visible
+  if (random() > 0.008) return; // ~0.8% chance per frame (~1 every ~2 sec at 60fps)
+
+  stars.push(makeStarInRange());
+}
+
+function makeStarInRange() {
+  // Spawn slightly ahead/below camera so it feels "discovered"
+  const x = random(60, level.w - 60);
+  const y = cam.y + height + random(200, 1400);
+  const r = random(8, 14);
+  return new Star(x, y, r);
 }
