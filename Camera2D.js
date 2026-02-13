@@ -11,8 +11,8 @@ class Camera2D {
     this.x = lerp(this.x, desired, lerpAmt);
   }
 
-  autoScrollDown(speed, lerpAmt = 1.0) {
-    const desired = this.y + speed;
+  autoScrollDown(dy, lerpAmt = 1.0) {
+    const desired = this.y + dy;
     this.y = lerp(this.y, desired, lerpAmt);
   }
 
