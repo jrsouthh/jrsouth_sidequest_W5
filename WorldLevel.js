@@ -3,7 +3,13 @@ class WorldLevel {
     this.name = levelJson.name ?? "Level";
 
     this.theme = Object.assign(
-      { bg: "#F0F0F0", platform: "#C8C8C8", blob: "#1478FF" },
+      {
+        bg: "#F0F0F0",
+        platform: "#C8C8C8",
+        blob: "#1478FF",
+        bgTop: "#0A2A66",
+        bgBottom: "#021126",
+      },
       levelJson.theme ?? {},
     );
 
@@ -13,6 +19,7 @@ class WorldLevel {
 
     // Camera knob (data-driven view state)
     this.camLerp = levelJson.camera?.lerp ?? 0.12;
+    this.scrollY = levelJson.camera?.scrollY ?? 0.0;
 
     // World size + death line
     this.w = levelJson.world?.w ?? 2400;
@@ -28,14 +35,32 @@ class WorldLevel {
     );
   }
 
-drawWorld() {
-  background(this.theme.bg);
-  push();
-  rectMode(CORNER);          // critical: undo any global rectMode(CENTER) [web:230]
-  noStroke();
-  fill(this.theme.platform);
+  drawWorld(camY = 0) {
+    // Ocean gradient (top -> bottom)
+    this.drawOceanGradient(camY);
 
-  for (const p of this.platforms) rect(p.x, p.y, p.w, p.h); // x,y = top-left [web:234]
-  pop();
-}
+    // (No platforms in underwater level, but keep this safe if you reuse it)
+    push();
+    rectMode(CORNER);
+    noStroke();
+    fill(this.theme.platform);
+    for (const p of this.platforms) rect(p.x, p.y, p.w, p.h);
+    pop();
+  }
+
+  drawOceanGradient(camY) {
+    // Subtle moving gradient based on camera Y so it feels like you're descending
+    const topCol = color(this.theme.bgTop);
+    const bottomCol = color(this.theme.bgBottom);
+
+    noStroke();
+    for (let y = 0; y < height; y++) {
+      const t = y / height;
+      // tiny shift based on camY for motion (very subtle)
+      const wobble = 0.03 * sin((camY + y) * 0.01);
+      const tt = constrain(t + wobble, 0, 1);
+      fill(lerpColor(topCol, bottomCol, tt));
+      rect(0, camY + y, this.w, 1);
+    }
+  }
 }
